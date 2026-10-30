@@ -294,3 +294,52 @@ code {
     border-right-color: var(--border);
   }
 }
+
+.carta {
+  position: fixed;      /* flutua sobre o canvas, presa na tela */
+  top: 20px;
+  right: 20px;
+  width: 240px;
+  padding: 16px;
+  background: #f4e4c1;  /* cor de pergaminho */
+  color: #2b1d0e;
+  border: 3px solid #8b5a2b;
+  border-radius: 12px;
+  font-family: Georgia, serif;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.carta ul {
+  list-style: none;
+  padding: 0;
+}
+
+.escondida {
+  display: none;
+}
+
+.carta h2 {
+  color: #6b1d1d;
+  font-family: Georgia, serif;
+  margin: 0 0 8px;
+}
+
+#botao-d20 {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#registro {
+  position: fixed;
+  bottom: 80px;
+  left: 20px;
+  width: 260px;
+  max-height: 200px;
+  overflow-y: auto;
+  color: #fff;
+  font-family: Georgia, serif;
+}
