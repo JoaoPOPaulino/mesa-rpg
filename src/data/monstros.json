@@ -1,0 +1,20 @@
+[
+  {
+    "nome": "Goblin Saqueador",
+    "descricao": "Pequeno, rápido e covarde. Ataca em bando.",
+    "vida": 7,
+    "defesa": 13,
+    "ataque": "+4 (1d6)",
+    "cor": "#6c3483",
+    "casa": { "x": 2, "z": -2 }
+  },
+  {
+    "nome": "Lobo Sombrio",
+    "descricao": "Caça à noite. Seus olhos brilham antes do ataque.",
+    "vida": 11,
+    "defesa": 12,
+    "ataque": "+3 (2d4)",
+    "cor": "#555555",
+    "casa": { "x": 3, "z": 2 }
+  }
+]
