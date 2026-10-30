@@ -1,20 +1,38 @@
 [
   {
-    "nome": "Goblin Saqueador",
-    "descricao": "Pequeno, rápido e covarde. Ataca em bando.",
-    "vida": 7,
-    "defesa": 13,
-    "ataque": "+4 (1d6)",
-    "cor": "#6c3483",
+    "nome": "Esqueleto Guerreiro",
+    "descricao": "Ossos protegidos por armadura enferrujada. Não sente medo nem dor.",
+    "vida": 13,
+    "defesa": 14,
+    "ataque": "+4 (1d8)",
+    "modelo": "Skeleton_Warrior.glb",
     "casa": { "x": 2, "z": -2 }
   },
   {
-    "nome": "Lobo Sombrio",
-    "descricao": "Caça à noite. Seus olhos brilham antes do ataque.",
-    "vida": 11,
-    "defesa": 12,
-    "ataque": "+3 (2d4)",
-    "cor": "#555555",
+    "nome": "Esqueleto Mago",
+    "descricao": "Ainda murmura os feitiços que aprendeu em vida.",
+    "vida": 9,
+    "defesa": 11,
+    "ataque": "+5 (2d6) mágico",
+    "modelo": "Skeleton_Mage.glb",
     "casa": { "x": 3, "z": 2 }
+  },
+  {
+    "nome": "Esqueleto Ladino",
+    "descricao": "Surge das sombras e ataca pelas costas.",
+    "vida": 10,
+    "defesa": 13,
+    "ataque": "+5 (1d6)",
+    "modelo": "Skeleton_Rogue.glb",
+    "casa": { "x": -2, "z": 1 }
+  },
+  {
+    "nome": "Esqueleto Lacaio",
+    "descricao": "Fraco sozinho, perigoso em grupo.",
+    "vida": 6,
+    "defesa": 10,
+    "ataque": "+2 (1d4)",
+    "modelo": "Skeleton_Minion.glb",
+    "casa": { "x": 1, "z": -4 }
   }
 ]

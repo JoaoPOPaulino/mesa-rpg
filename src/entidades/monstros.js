@@ -1,22 +1,44 @@
 import * as THREE from 'three';
-import dadosMonstros from '../data/monstros.json'; // o Vite lê JSON direto
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import dadosMonstros from '../data/monstros.json';
 
-// Lista dos monstros na cena (exportada para o clique poder testar o raio nela)
+const carregador = new GLTFLoader();
+const ALTURA_MINIATURA = 1.2; // altura desejada, em "casas"
+
 export const monstros = [];
 
 export function criarMonstros(scene) {
-  // for...of = o "for each" do Java: for (Monstro dados : dadosMonstros)
   for (const dados of dadosMonstros) {
-    const monstro = new THREE.Mesh(
-      new THREE.ConeGeometry(0.4, 1, 6),
-      new THREE.MeshStandardMaterial({ color: dados.cor })
-    );
+    carregador.load(`/modelos/${dados.modelo}`, (gltf) => {
+      const modelo = gltf.scene;
 
-    // Casa (dado do jogo) → posição 3D (visual): +0.5 para ficar no centro
-    monstro.position.set(dados.casa.x + 0.5, 0.5, dados.casa.z + 0.5);
+      // TEMPORÁRIO: lista os ossos do modelo no console
+      modelo.getObjectByName('upperarmr')?.rotateX(-1.2);
+      modelo.getObjectByName('upperarml')?.rotateX(-1.2);
 
-    monstro.userData = dados; // a carta continua lendo nome, vida etc. daqui
-    scene.add(monstro);
-    monstros.push(monstro);   // push = add() do ArrayList
+      // 1. Mede o modelo com uma caixa invisível
+      const caixa = new THREE.Box3().setFromObject(modelo);
+      const altura = caixa.max.y - caixa.min.y;
+
+      // 2. Escala: se o modelo tem 3 de altura e queremos 1.2, multiplicamos por 0.4
+      const escala = ALTURA_MINIATURA / altura;
+      modelo.scale.setScalar(escala); // mesma escala em x, y e z
+
+      // 3. Posiciona no centro da casa, com os pés encostados no chão
+      modelo.position.set(
+        dados.casa.x + 0.5,
+        -caixa.min.y * escala,
+        dados.casa.z + 0.5
+      );
+
+      // 4. Coloca os dados em TODAS as partes do modelo,
+      //    para o clique funcionar em qualquer pedaço dele
+      modelo.traverse((parte) => {
+        parte.userData = dados;
+      });
+
+      scene.add(modelo);
+      monstros.push(modelo);
+    });
   }
 }
