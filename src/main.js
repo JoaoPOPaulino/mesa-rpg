@@ -1,9 +1,17 @@
 import * as THREE from 'three';
 import { mostrarCarta, esconderCarta } from './ui/carta.js';
+import { registrar } from './ui/registro.js';
 import { criarDado, rolarD20, atualizarDado } from './dados/dado.js';
 import { criarMonstros, monstros } from './entidades/monstros.js';
 import { criarHerois, herois } from './entidades/herois.js';
-import { atualizarMiniaturas, encontrarRaiz } from './entidades/miniaturas.js';
+import {
+  atualizarMiniaturas,
+  encontrarRaiz,
+  moverPara,
+  tocarAnimacao,
+} from './entidades/miniaturas.js';
+import { atacar } from './regras/combate.js';
+import { casaOcupada } from './regras/tabuleiro.js';
 import './style.css';
 
 // ===== CENA, CÂMERA, RENDERER =====
@@ -71,7 +79,7 @@ scene.add(destaque);
 
 // ===== ANEL DE SELEÇÃO (sob o herói selecionado) =====
 const anel = new THREE.Mesh(
-  new THREE.RingGeometry(0.35, 0.45, 32), // (raio interno, raio externo, segmentos)
+  new THREE.RingGeometry(0.35, 0.45, 32),
   new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide })
 );
 anel.rotation.x = -Math.PI / 2;
@@ -95,7 +103,7 @@ renderer.domElement.addEventListener('mousemove', (evento) => {
   }
 });
 
-// ===== CLIQUE: monstro → herói → chão =====
+// ===== SELEÇÃO =====
 let selecionado = null;
 
 function desselecionar() {
@@ -103,14 +111,57 @@ function desselecionar() {
   anel.visible = false;
 }
 
+// ===== COMBATE =====
+// A REGRA (combate.js) calcula; aqui só mostramos o resultado
+function resolverAtaque(heroi, monstro) {
+  console.log('ATAQUE', heroi.userData.nome, '→', monstro.userData.nome, monstro.userData.vidaAtual);
+  const atacante = heroi.userData;
+  const alvo = monstro.userData;
+
+  if (alvo.vidaAtual <= 0) {
+    registrar(`💀 ${alvo.nome} já foi derrotado.`);
+    return;
+  }
+
+  // O herói vira para o alvo
+  heroi.rotation.y = Math.atan2(
+    monstro.position.x - heroi.position.x,
+    monstro.position.z - heroi.position.z
+  );
+
+  const r = atacar(atacante, alvo);
+
+  let texto = `⚔️ ${atacante.nome} → ${alvo.nome}: 🎲 ${r.d20} + ${atacante.ataque.bonus} = ${r.total} vs Defesa ${alvo.defesa}`;
+  if (r.critico) texto += ` — CRÍTICO! ${r.dano} de dano`;
+  else if (r.falhaCritica) texto += ' — FALHA CRÍTICA';
+  else if (r.acertou) texto += ` — acertou, ${r.dano} de dano`;
+  else texto += ' — errou';
+  registrar(texto);
+
+  if (r.derrotado) {
+    tocarAnimacao(monstro, 'Death_A', { manter: true });
+    registrar(`💀 ${alvo.nome} foi derrotado!`);
+  } else if (r.acertou) {
+    tocarAnimacao(monstro, 'Hit_A');
+  }
+}
+
+// ===== CLIQUE: monstro → herói → chão =====
 renderer.domElement.addEventListener('click', (evento) => {
   atualizarMouse(evento);
   raycaster.setFromCamera(mouse, camera);
 
-  // 1º: clicou num monstro? Abre a carta.
+  // 1º: clicou num monstro? Se tem herói selecionado, ataca. Depois mostra a carta.
   const acertosMonstros = raycaster.intersectObjects(monstros);
   if (acertosMonstros.length > 0) {
-    mostrarCarta(acertosMonstros[0].object.userData);
+    const monstro = encontrarRaiz(acertosMonstros[0].object, monstros);
+
+    if (selecionado) {
+      resolverAtaque(selecionado, monstro);
+      desselecionar();
+    }
+
+    mostrarCarta(monstro.userData);
     return;
   }
 
@@ -137,14 +188,20 @@ renderer.domElement.addEventListener('click', (evento) => {
 
     if (selecionado) {
       const centro = centroDaCasa(acertosChao[0].point);
+      const casa = { x: centro.x - 0.5, z: centro.z - 0.5 };
 
-      // Visual: move o modelo 3D
-      selecionado.position.x = centro.x;
-      selecionado.position.z = centro.z;
+      // Junta os DADOS de todas as miniaturas, menos o próprio herói selecionado
+      const outros = [...herois, ...monstros]
+        .filter((m) => m !== selecionado)
+        .map((m) => m.userData);
 
-      // Estado: atualiza a casa nos dados do herói
-      selecionado.userData.casa = { x: centro.x - 0.5, z: centro.z - 0.5 };
+      if (casaOcupada(casa.x, casa.z, outros)) {
+        registrar('🚫 Essa casa já está ocupada.');
+        return; // não move, e o herói continua selecionado
+      }
 
+      moverPara(selecionado, centro.x, centro.z);
+      selecionado.userData.casa = casa;
       desselecionar();
     }
   }

@@ -5,7 +5,7 @@
     "descricao": "Juramentado para proteger os fracos. Nunca recua.",
     "vida": 18,
     "defesa": 16,
-    "ataque": "+5 (1d8)",
+    "ataque": { "bonus": 5, "dano": "1d8" },
     "modelo": "Knight.glb",
     "casa": { "x": 0, "z": 3 }
   },
@@ -15,7 +15,7 @@
     "descricao": "Luta primeiro, pergunta depois. Às vezes nem pergunta.",
     "vida": 20,
     "defesa": 13,
-    "ataque": "+6 (1d12)",
+    "ataque": { "bonus": 6, "dano": "1d12" },
     "modelo": "Barbarian.glb",
     "casa": { "x": -2, "z": 3 }
   },
@@ -25,7 +25,7 @@
     "descricao": "Estudou anos para lançar uma bola de fogo. Vale cada segundo.",
     "vida": 10,
     "defesa": 11,
-    "ataque": "+6 (2d6) mágico",
+    "ataque": { "bonus": 6, "dano": "2d6" },
     "modelo": "Mage.glb",
     "casa": { "x": 2, "z": 4 }
   },
@@ -35,7 +35,7 @@
     "descricao": "Nunca erra um alvo que consegue ver.",
     "vida": 14,
     "defesa": 14,
-    "ataque": "+6 (1d8)",
+    "ataque": { "bonus": 6, "dano": "1d8" },
     "modelo": "Ranger.glb",
     "casa": { "x": -1, "z": 4 }
   }
