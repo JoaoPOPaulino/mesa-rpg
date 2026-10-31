@@ -6,6 +6,7 @@
     "defesa": 14,
     "ataque": "+4 (1d8)",
     "modelo": "Skeleton_Warrior.glb",
+    "armas": { "direita": "Skeleton_Axe.gltf", "esquerda": "Skeleton_Shield_Large_A.gltf" },
     "casa": { "x": 2, "z": -2 }
   },
   {
@@ -15,6 +16,7 @@
     "defesa": 11,
     "ataque": "+5 (2d6) mágico",
     "modelo": "Skeleton_Mage.glb",
+    "armas": { "direita": "Skeleton_Staff.gltf" },
     "casa": { "x": 3, "z": 2 }
   },
   {
@@ -24,6 +26,7 @@
     "defesa": 13,
     "ataque": "+5 (1d6)",
     "modelo": "Skeleton_Rogue.glb",
+    "armas": { "direita": "Skeleton_Blade.gltf", "esquerda": "Skeleton_Blade.gltf" },
     "casa": { "x": -2, "z": 1 }
   },
   {
@@ -33,6 +36,7 @@
     "defesa": 10,
     "ataque": "+2 (1d4)",
     "modelo": "Skeleton_Minion.glb",
+    "armas": { "direita": "Skeleton_Blade.gltf", "esquerda": "Skeleton_Shield_Small_A.gltf" },
     "casa": { "x": 1, "z": -4 }
   }
 ]

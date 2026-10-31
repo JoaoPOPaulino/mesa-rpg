@@ -1,8 +1,7 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mostrarCarta, esconderCarta } from './ui/carta.js';
 import { criarDado, rolarD20, atualizarDado } from './dados/dado.js';
-import { criarMonstros, monstros } from './entidades/monstros.js';
+  import { criarMonstros, monstros, atualizarMonstros } from './entidades/monstros.js';
 import './style.css';
 
 // ===== CENA, CÂMERA, RENDERER =====
@@ -59,15 +58,6 @@ const tokens = [token, tokenAzul];
 
 // ===== MONSTROS =====
 criarMonstros(scene);
-
-// ===== MODELOS 3D =====
-const carregador = new GLTFLoader();
-
-carregador.load('/modelos/Orc.gltf', (gltf) => {
-  const orc = gltf.scene;
-  scene.add(orc);
-  console.log('Orc carregado!', orc);
-});
 
 
 // ===== RAYCASTER =====
@@ -154,12 +144,18 @@ renderer.domElement.addEventListener('click', (evento) => {
    document.getElementById('botao-d20').addEventListener('click', rolarD20);
 
 // ===== LOOP =====
-   function loop() {
-     atualizarDado();
-     renderer.render(scene, camera);
-     requestAnimationFrame(loop);
-   }
-   loop();
+  const relogio = new THREE.Clock();
+
+  function loop() {
+    const delta = relogio.getDelta();
+
+    atualizarDado();
+    atualizarMonstros(delta);
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
 
 // ===== REDIMENSIONAR =====
 window.addEventListener('resize', () => {
