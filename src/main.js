@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { mostrarCarta, esconderCarta } from './ui/carta.js';
 import { criarDado, rolarD20, atualizarDado } from './dados/dado.js';
-  import { criarMonstros, monstros, atualizarMonstros } from './entidades/monstros.js';
+import { criarMonstros, monstros } from './entidades/monstros.js';
+import { criarHerois, herois } from './entidades/herois.js';
+import { atualizarMiniaturas, encontrarRaiz } from './entidades/miniaturas.js';
 import './style.css';
 
 // ===== CENA, CÂMERA, RENDERER =====
@@ -37,28 +39,9 @@ const grade = new THREE.GridHelper(10, 10, 0x000000, 0x000000);
 grade.position.y = 0.01;
 scene.add(grade);
 
-// ===== TOKENS DOS JOGADORES =====
-const tokenGeometria = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-
-const token = new THREE.Mesh(
-  tokenGeometria,
-  new THREE.MeshStandardMaterial({ color: 0xc0392b })
-);
-token.position.set(0.5, 0.4, 0.5);
-scene.add(token);
-
-const tokenAzul = new THREE.Mesh(
-  tokenGeometria,
-  new THREE.MeshStandardMaterial({ color: 0x2980b9 })
-);
-tokenAzul.position.set(-2.5, 0.4, -2.5);
-scene.add(tokenAzul);
-
-const tokens = [token, tokenAzul];
-
-// ===== MONSTROS =====
+// ===== MINIATURAS =====
 criarMonstros(scene);
-
+criarHerois(scene);
 
 // ===== RAYCASTER =====
 const raycaster = new THREE.Raycaster();
@@ -76,7 +59,7 @@ function centroDaCasa(ponto) {
   };
 }
 
-// ===== DESTAQUE DA CASA =====
+// ===== DESTAQUE DA CASA (sob o mouse) =====
 const destaque = new THREE.Mesh(
   new THREE.PlaneGeometry(1, 1),
   new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.4 })
@@ -85,6 +68,16 @@ destaque.rotation.x = -Math.PI / 2;
 destaque.position.y = 0.02;
 destaque.visible = false;
 scene.add(destaque);
+
+// ===== ANEL DE SELEÇÃO (sob o herói selecionado) =====
+const anel = new THREE.Mesh(
+  new THREE.RingGeometry(0.35, 0.45, 32), // (raio interno, raio externo, segmentos)
+  new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide })
+);
+anel.rotation.x = -Math.PI / 2;
+anel.position.y = 0.03;
+anel.visible = false;
+scene.add(anel);
 
 // ===== MOUSE PASSANDO =====
 renderer.domElement.addEventListener('mousemove', (evento) => {
@@ -102,60 +95,78 @@ renderer.domElement.addEventListener('mousemove', (evento) => {
   }
 });
 
-// ===== CLIQUE: monstro → token → chão =====
+// ===== CLIQUE: monstro → herói → chão =====
 let selecionado = null;
+
+function desselecionar() {
+  selecionado = null;
+  anel.visible = false;
+}
 
 renderer.domElement.addEventListener('click', (evento) => {
   atualizarMouse(evento);
   raycaster.setFromCamera(mouse, camera);
 
+  // 1º: clicou num monstro? Abre a carta.
   const acertosMonstros = raycaster.intersectObjects(monstros);
   if (acertosMonstros.length > 0) {
-    mostrarCarta(acertosMonstros[0].object.userData); // vem do carta.js
+    mostrarCarta(acertosMonstros[0].object.userData);
     return;
   }
 
-  const acertosTokens = raycaster.intersectObjects(tokens);
-  if (acertosTokens.length > 0) {
-    if (selecionado) {
-      selecionado.material.emissive.setHex(0x000000);
+  // 2º: clicou num herói? Seleciona (ou desseleciona, se já era ele).
+  const acertosHerois = raycaster.intersectObjects(herois);
+  if (acertosHerois.length > 0) {
+    const heroi = encontrarRaiz(acertosHerois[0].object, herois);
+
+    if (heroi === selecionado) {
+      desselecionar();
+    } else {
+      selecionado = heroi;
+      anel.position.x = heroi.position.x;
+      anel.position.z = heroi.position.z;
+      anel.visible = true;
     }
-    selecionado = acertosTokens[0].object;
-    selecionado.material.emissive.setHex(0x444444);
     return;
   }
 
+  // 3º: clicou no chão? Fecha a carta e move o herói selecionado.
   const acertosChao = raycaster.intersectObject(chao);
   if (acertosChao.length > 0) {
-    esconderCarta(); // vem do carta.js
+    esconderCarta();
 
     if (selecionado) {
-      const casa = centroDaCasa(acertosChao[0].point);
-      selecionado.position.x = casa.x;
-      selecionado.position.z = casa.z;
-      selecionado.material.emissive.setHex(0x000000);
-      selecionado = null;
+      const centro = centroDaCasa(acertosChao[0].point);
+
+      // Visual: move o modelo 3D
+      selecionado.position.x = centro.x;
+      selecionado.position.z = centro.z;
+
+      // Estado: atualiza a casa nos dados do herói
+      selecionado.userData.casa = { x: centro.x - 0.5, z: centro.z - 0.5 };
+
+      desselecionar();
     }
   }
 });
 
-   // ===== DADO d20 =====
-   criarDado(scene);
-   document.getElementById('botao-d20').addEventListener('click', rolarD20);
+// ===== DADO d20 =====
+criarDado(scene);
+document.getElementById('botao-d20').addEventListener('click', rolarD20);
 
 // ===== LOOP =====
-  const relogio = new THREE.Clock();
+const relogio = new THREE.Clock();
 
-  function loop() {
-    const delta = relogio.getDelta();
+function loop() {
+  const delta = relogio.getDelta();
 
-    atualizarDado();
-    atualizarMonstros(delta);
+  atualizarDado();
+  atualizarMiniaturas(delta);
 
-    renderer.render(scene, camera);
-    requestAnimationFrame(loop);
-  }
-  loop();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+loop();
 
 // ===== REDIMENSIONAR =====
 window.addEventListener('resize', () => {
